@@ -109,13 +109,19 @@ Now, enter the number of hints you used:"""
     }
 ]
 
-# Initialize session state for card index.
+# Initialize session state variables.
 if "card_index" not in st.session_state:
     st.session_state.card_index = 0
 
+# We'll store per-card correctness using a key "correct_{card_index}"
+def mark_correct(card_index):
+    st.session_state[f"correct_{card_index}"] = True
+
+def is_correct(card_index):
+    return st.session_state.get(f"correct_{card_index}", False)
+
 # Function to render a card with alternate colors and modern design.
 def render_card(title, body, card_index):
-    # Choose color scheme based on card index (even/odd).
     if card_index % 2 == 0:
         bg_color = "linear-gradient(135deg, #ffffff, #e6f0fa)"
         title_color = "#1d3557"
@@ -124,7 +130,6 @@ def render_card(title, body, card_index):
         bg_color = "linear-gradient(135deg, #fefefe, #f2f2ff)"
         title_color = "#264653"
         text_color = "#2a9d8f"
-
     st.markdown(
         f"""
         <div style="
@@ -147,7 +152,6 @@ def render_card(title, body, card_index):
 # Container for the card.
 card_container = st.empty()
 
-# Main app flow: display one card at a time.
 def main():
     current = st.session_state.card_index
 
@@ -160,8 +164,7 @@ def main():
     with card_container.container():
         if card["type"] == "welcome":
             render_card(card["title"], card["text"], current)
-            # Use a button outside the form for the welcome card.
-            if st.button("Start", key="welcome_next"):
+            if st.button("Start", key="welcome_start"):
                 st.session_state.card_index += 1
                 with st.spinner("Loading next card..."):
                     time.sleep(0.5)
@@ -169,48 +172,53 @@ def main():
 
         elif card["type"] == "question":
             render_card(card["title"], card["question"], current)
-            # Using a form for the question card.
-            with st.form(key=f"form_{current}"):
-                user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
-                submitted = st.form_submit_button("Submit")
-                if submitted:
-                    try:
-                        user_answer = int(user_input)
-                    except ValueError:
-                        user_answer = None
-                    if user_answer is not None and user_answer == card["answer"]:
-                        st.session_state.card_index += 1
-                        with st.spinner("Correct! Loading next card..."):
-                            time.sleep(0.5)
-                        safe_rerun()
-                    else:
-                        st.error("Incorrect answer. Please try again.")
+            # Input for answer.
+            user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
+            # Submit button to check answer.
+            if st.button("Submit", key=f"submit_{current}"):
+                try:
+                    user_answer = int(user_input)
+                except ValueError:
+                    user_answer = None
+                if user_answer is not None and user_answer == card["answer"]:
+                    mark_correct(current)
+                else:
+                    st.error("Incorrect answer. Please try again.")
+
+            # Show Next button if answer is correct.
+            if is_correct(current):
+                if st.button("Next", key=f"next_{current}"):
+                    st.session_state.card_index += 1
+                    with st.spinner("Loading next card..."):
+                        time.sleep(0.5)
+                    safe_rerun()
 
         elif card["type"] == "final":
             render_card(card["title"], card["text"], current)
-            with st.form(key="final_form"):
-                hints_used = st.text_input("How many hints did you use?", key="hints", placeholder="Enter a number (0-3)")
-                submitted = st.form_submit_button("Submit")
-                if submitted:
-                    try:
-                        hints_used_int = int(hints_used)
-                    except ValueError:
-                        hints_used_int = None
-                    if hints_used_int is not None:
-                        if hints_used_int == 0:
-                            st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
-                        elif hints_used_int == 1:
-                            st.info("Since you used 1 hint, you get a tiramisu and a hug")
-                        elif hints_used_int == 2:
-                            st.info("Since you used 2 hints, you get a coffee and a hug")
-                        elif hints_used_int >= 3:
-                            st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
-                        st.session_state.card_index += 1
-                        with st.spinner("Finalizing..."):
-                            time.sleep(0.5)
-                        safe_rerun()
-                    else:
-                        st.error("Please enter a valid number between 0 and 3.")
+            user_input = st.text_input("How many hints did you use?", key="hints_input", placeholder="Enter a number (0-3)")
+            if st.button("Submit", key="final_submit"):
+                try:
+                    hints_used_int = int(user_input)
+                except ValueError:
+                    hints_used_int = None
+                if hints_used_int is not None:
+                    if hints_used_int == 0:
+                        st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
+                    elif hints_used_int == 1:
+                        st.info("Since you used 1 hint, you get a tiramisu and a hug")
+                    elif hints_used_int == 2:
+                        st.info("Since you used 2 hints, you get a coffee and a hug")
+                    elif hints_used_int >= 3:
+                        st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
+                    mark_correct(current)
+                else:
+                    st.error("Please enter a valid number between 0 and 3.")
+            if is_correct(current):
+                if st.button("Next", key="final_next"):
+                    st.session_state.card_index += 1
+                    with st.spinner("Finalizing..."):
+                        time.sleep(0.5)
+                    safe_rerun()
 
 if __name__ == "__main__":
     main()
