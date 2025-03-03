@@ -1,14 +1,14 @@
 import streamlit as st
 import time
 
-# Helper function for re-running the app safely
+# Helper function to safely re-run the app.
 def safe_rerun():
     try:
         st.experimental_rerun()
-    except AttributeError:
-        pass  # In case experimental_rerun is not available
+    except Exception:
+        pass
 
-# List of cards, each card is either a welcome, question, or final card.
+# List of cards with alternating color designs.
 cards = [
     {
         "type": "welcome",
@@ -113,68 +113,100 @@ Now, enter the number of hints you used:"""
 if "card_index" not in st.session_state:
     st.session_state.card_index = 0
 
-# Function to render a card with modern, colorful design
-def render_card(title, body):
+# Function to render a card with alternate colors and modern design.
+def render_card(title, body, card_index):
+    # Choose color scheme based on card index (even/odd).
+    if card_index % 2 == 0:
+        bg_color = "linear-gradient(135deg, #ffffff, #e6f0fa)"
+        title_color = "#1d3557"
+        text_color = "#457b9d"
+    else:
+        bg_color = "linear-gradient(135deg, #fefefe, #f2f2ff)"
+        title_color = "#264653"
+        text_color = "#2a9d8f"
+
     st.markdown(
         f"""
         <div style="
-            background: linear-gradient(135deg, #ffffff, #e6f0fa);
+            background: {bg_color};
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             max-width: 650px;
             margin: 40px auto;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            text-align: center;">
-            <h2 style="color: #1d3557; margin-bottom: 20px;">{title}</h2>
-            <p style="font-size: 20px; color: #457b9d; line-height: 1.5;">{body}</p>
+            text-align: center;
+            transition: all 0.3s ease-in-out;">
+            <h2 style="color: {title_color}; margin-bottom: 20px;">{title}</h2>
+            <p style="font-size: 20px; color: {text_color}; line-height: 1.5;">{body}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# Main app flow: show one card at a time.
+# Container for the card.
+card_container = st.empty()
+
+# Main app flow: display one card at a time.
 def main():
     current = st.session_state.card_index
 
-    # If all cards are done, show a completion message.
     if current >= len(cards):
         st.success("You've completed the puzzle!")
         return
 
     card = cards[current]
 
-    if card["type"] == "welcome":
-        render_card(card["title"], card["text"])
-        if st.button("Next", key="welcome_next"):
-            st.session_state.card_index += 1
-            safe_rerun()
-
-    elif card["type"] == "question":
-        render_card(card["title"], card["question"])
-        user_answer = st.number_input("Your answer:", key=f"input_{current}", step=1)
-        if st.button("Submit Answer", key=f"submit_{current}"):
-            if user_answer == card["answer"]:
-                # Immediately go to next card if answer is correct.
+    with card_container.container():
+        if card["type"] == "welcome":
+            render_card(card["title"], card["text"], current)
+            if st.button("Start", key="welcome_next"):
                 st.session_state.card_index += 1
+                with st.spinner("Loading next card..."):
+                    time.sleep(0.5)
                 safe_rerun()
-            else:
-                st.error("Incorrect answer. Please try again.")
 
-    elif card["type"] == "final":
-        render_card(card["title"], card["text"])
-        hints_used = st.number_input("How many hints did you use?", min_value=0, max_value=3, step=1, key="hints")
-        if st.button("Submit Hint Usage", key="hints_submit"):
-            if hints_used == 0:
-                st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
-            elif hints_used == 1:
-                st.info("Since you used 1 hint, you get a tiramisu and a hug")
-            elif hints_used == 2:
-                st.info("Since you used 2 hints, you get a coffee and a hug")
-            elif hints_used == 3:
-                st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
-            st.session_state.card_index += 1
-            safe_rerun()
+        elif card["type"] == "question":
+            render_card(card["title"], card["question"], current)
+            # Use a text_input for a cleaner design.
+            user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
+            # Convert the user input to integer if possible.
+            try:
+                user_answer = int(user_input)
+            except ValueError:
+                user_answer = None
+            if st.button("Submit", key=f"submit_{current}"):
+                if user_answer is not None and user_answer == card["answer"]:
+                    st.session_state.card_index += 1
+                    with st.spinner("Correct! Loading next card..."):
+                        time.sleep(0.5)
+                    safe_rerun()
+                else:
+                    st.error("Incorrect answer. Please try again.")
+
+        elif card["type"] == "final":
+            render_card(card["title"], card["text"], current)
+            hints_used = st.text_input("How many hints did you use?", key="hints", placeholder="Enter a number (0-3)")
+            try:
+                hints_used_int = int(hints_used)
+            except ValueError:
+                hints_used_int = None
+            if st.button("Submit", key="hints_submit"):
+                if hints_used_int is not None:
+                    if hints_used_int == 0:
+                        st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
+                    elif hints_used_int == 1:
+                        st.info("Since you used 1 hint, you get a tiramisu and a hug")
+                    elif hints_used_int == 2:
+                        st.info("Since you used 2 hints, you get a coffee and a hug")
+                    elif hints_used_int >= 3:
+                        st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
+                    st.session_state.card_index += 1
+                    with st.spinner("Finalizing..."):
+                        time.sleep(0.5)
+                    safe_rerun()
+                else:
+                    st.error("Please enter a valid number between 0 and 3.")
 
 if __name__ == "__main__":
     main()
