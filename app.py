@@ -122,7 +122,7 @@ def is_correct(card_index):
 # Function to render a card with a burgundy-inspired modern design.
 def render_card(title, body, card_index):
     burgundy = "#800020"
-    # Use light, complementary backgrounds with burgundy accents.
+    # Responsive design: width is 90% on mobile, with a max-width.
     if card_index % 2 == 0:
         bg_color = "linear-gradient(135deg, #f8e1e7, #fdeff1)"
     else:
@@ -135,6 +135,7 @@ def render_card(title, body, card_index):
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             max-width: 650px;
+            width: 90%;
             margin: 40px auto;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             text-align: center;
@@ -149,43 +150,43 @@ def render_card(title, body, card_index):
 def show_hint_button(hint_num, hint_text):
     button_key = f"hint_button_{hint_num}"
     confirm_key = f"hint_confirm_{hint_num}"
-    # If the hint is already confirmed, show the hint.
     if st.session_state.get(f"hint{hint_num}", False):
         st.info(f"Hint {hint_num}: {hint_text}")
     else:
-        # Show the button to get the hint.
         if st.button(f"Hint {hint_num}", key=button_key):
             with st.expander("Are you sure you want to get the hint?"):
                 if st.button("Yes, show hint", key=confirm_key):
                     st.session_state[f"hint{hint_num}"] = True
 
-# Container for the card.
-card_container = st.empty()
-
 def main():
     total_cards = len(cards)
     current = st.session_state.card_index
-
-    # Display progress bar at the top.
     progress = (current + 1) / total_cards
-    st.progress(progress)
 
+    # Get the current card.
     if current >= total_cards:
         st.success("You've completed the puzzle!")
         return
 
     card = cards[current]
 
-    with card_container.container():
-        # Welcome Card
-        if card["type"] == "welcome":
+    # --- Card Display Container ---
+    with st.container():
+        if card["type"] in ["welcome", "final"]:
             render_card(card["title"], card["text"], current)
+        elif card["type"] == "question":
+            render_card(card["title"], card["question"], current)
+
+    # --- Progress Bar (just below the card) ---
+    st.progress(progress)
+
+    # --- Interactive Elements Container ---
+    with st.container():
+        if card["type"] == "welcome":
             if st.button("Start", key="start", on_click=advance_card):
                 time.sleep(0.3)
 
-        # Question Cards
         elif card["type"] == "question":
-            render_card(card["title"], card["question"], current)
             st.write("Your answer:")
             user_input = st.text_input("", key=f"input_{current}", placeholder="Type your answer here")
             if st.button("Submit", key=f"submit_{current}"):
@@ -197,13 +198,11 @@ def main():
                     mark_correct(current)
                 else:
                     st.error("Incorrect answer. Please try again.")
-            # Only show Next button if the answer is correct.
             if is_correct(current):
                 st.button("Next", key=f"next_{current}", on_click=advance_card)
 
-        # Final Card with hints and deciphered message.
         elif card["type"] == "final":
-            render_card(card["title"], card["text"], current)
+            # Show hint buttons.
             st.write("Need a hint? Click the buttons below:")
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -212,7 +211,35 @@ def main():
                 show_hint_button(2, "Consider a substitution.")
             with col3:
                 show_hint_button(3, "Look at the numerical position of letters in the English alphabet.")
-            st.button("Next", key="final_next", on_click=advance_card)
+
+            st.write("---")
+            # Ask the message question.
+            message_input = st.text_input("What is the message?", key="final_message", placeholder="Type the message here")
+            if st.button("Submit Message", key="final_message_submit"):
+                if message_input.strip().lower() == "ti penso sempre":
+                    st.success("Congrats!! Now you know")
+                else:
+                    st.error("Incorrect message. Please try again.")
+
+            st.write("---")
+            # Ask the hints used.
+            hints_used_input = st.text_input("How many hints have you used? (0-3)", key="hints_used", placeholder="Enter a number")
+            if st.button("Submit Hints", key="hints_submit"):
+                try:
+                    hints_num = int(hints_used_input)
+                except ValueError:
+                    hints_num = None
+                if hints_num is not None:
+                    if hints_num == 0:
+                        st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
+                    elif hints_num == 1:
+                        st.info("Since you used 1 hint, you get a tiramisu and a hug")
+                    elif hints_num == 2:
+                        st.info("Since you used 2 hints, you get a coffee and a hug")
+                    elif hints_num >= 3:
+                        st.info("Since you used 3 hints, you get a hug. Other prizes were a coffee and a tiramisu")
+                else:
+                    st.error("Please enter a valid number between 0 and 3.")
 
 if __name__ == "__main__":
     main()
