@@ -93,7 +93,7 @@ cards = [
     {
         "type": "final",
         "title": "Message to decipher",
-        "text": "20.9 space 16.5.14.19.15 space 19.5.13.16.18.5\n\nThis is the deciphered message.\n\nWhat is the message?"
+        "text": "20.9 [space] 16.5.14.19.15 [space] 19.5.13.16.18.5\n\n\nWhat is the message?"
     }
 ]
 
