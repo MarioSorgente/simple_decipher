@@ -92,8 +92,8 @@ cards = [
     },
     {
         "type": "final",
-        "title": "Deciphered Message",
-        "text": "20.9 16.5.14.19.15 19.5.13.16.18.5\n\nThis is the deciphered message.\n\nWhat is the message?"
+        "title": "Message to decipher",
+        "text": "20.9 space 16.5.14.19.15 space 19.5.13.16.18.5\n\nThis is the deciphered message.\n\nWhat is the message?"
     }
 ]
 
@@ -195,14 +195,14 @@ def main():
 
         elif card["type"] == "final":
             # Show hint buttons.
-            st.write("Need a hint? Click the buttons below:")
+            st.write("Need a hint? Double click the buttons below:")
             col1, col2, col3 = st.columns(3)
             with col1:
                 show_hint_button(1, "Mingle letters and numbers.")
             with col2:
                 show_hint_button(2, "Consider a substitution.")
             with col3:
-                show_hint_button(3, "Look at the numerical position of letters in the English alphabet.")
+                show_hint_button(3, "Look at the numerical position of letters in the English alphabet, e.g. A=1.")
             
             st.write("---")
             # Ask the decipher message question.
