@@ -5,7 +5,7 @@ import time
 def advance_card():
     st.session_state.card_index += 1
 
-# List of cards with alternating color designs.
+# List of cards with alternating designs.
 cards = [
     {
         "type": "welcome",
@@ -99,10 +99,7 @@ cards = [
 
 This is a message you have to decipher.
 
-You can get hints if you need help. Click a hint button below to see a confirmation before revealing the hint.
-
-Also, please answer the following puzzle:
-Enter how many cards are left to the end."""
+You can get hints if you need help. Click a hint button below to see a confirmation before revealing the hint."""
     }
 ]
 
@@ -122,17 +119,14 @@ def mark_correct(card_index):
 def is_correct(card_index):
     return st.session_state.get(f"correct_{card_index}", False)
 
-# Function to render a card with alternate colors and modern design.
+# Function to render a card with a burgundy-inspired modern design.
 def render_card(title, body, card_index):
+    burgundy = "#800020"
+    # Use light, complementary backgrounds with burgundy accents.
     if card_index % 2 == 0:
-        bg_color = "linear-gradient(135deg, #ffffff, #e6f0fa)"
-        title_color = "#1d3557"
-        text_color = "#457b9d"
+        bg_color = "linear-gradient(135deg, #f8e1e7, #fdeff1)"
     else:
-        bg_color = "linear-gradient(135deg, #fefefe, #f2f2ff)"
-        title_color = "#264653"
-        text_color = "#2a9d8f"
-
+        bg_color = "linear-gradient(135deg, #fff0f5, #ffe6eb)"
     st.markdown(
         f"""
         <div style="
@@ -145,8 +139,8 @@ def render_card(title, body, card_index):
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             text-align: center;
             transition: all 0.3s ease-in-out;">
-            <h2 style="color: {title_color}; margin-bottom: 20px;">{title}</h2>
-            <p style="font-size: 20px; color: {text_color}; line-height: 1.5;">{body}</p>
+            <h2 style="color: {burgundy}; margin-bottom: 20px;">{title}</h2>
+            <p style="font-size: 20px; color: #330011; line-height: 1.5;">{body}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -161,7 +155,6 @@ def show_hint_button(hint_num, hint_text):
     else:
         # Show the button to get the hint.
         if st.button(f"Hint {hint_num}", key=button_key):
-            # Show an expander for confirmation.
             with st.expander("Are you sure you want to get the hint?"):
                 if st.button("Yes, show hint", key=confirm_key):
                     st.session_state[f"hint{hint_num}"] = True
@@ -170,9 +163,14 @@ def show_hint_button(hint_num, hint_text):
 card_container = st.empty()
 
 def main():
+    total_cards = len(cards)
     current = st.session_state.card_index
 
-    if current >= len(cards):
+    # Display progress bar at the top.
+    progress = (current + 1) / total_cards
+    st.progress(progress)
+
+    if current >= total_cards:
         st.success("You've completed the puzzle!")
         return
 
@@ -202,7 +200,7 @@ def main():
             if is_correct(current):
                 st.button("Next", key=f"next_{current}", on_click=advance_card)
 
-        # Final Card with hints and extra puzzle.
+        # Final Card with hints and deciphered message.
         elif card["type"] == "final":
             render_card(card["title"], card["text"], current)
             st.write("Need a hint? Click the buttons below:")
@@ -213,22 +211,7 @@ def main():
                 show_hint_button(2, "Consider a substitution.")
             with col3:
                 show_hint_button(3, "Look at the numerical position of letters in the English alphabet.")
-
-            st.write("---")
-            # Ask the extra puzzle: How many cards are left to the end?
-            user_input = st.text_input("Enter how many cards are left to the end:", key="cards_left_input", placeholder="Enter a number")
-            if st.button("Submit", key="final_submit"):
-                try:
-                    cards_left = int(user_input)
-                except ValueError:
-                    cards_left = None
-                # Since this is the final card, the correct answer is 0.
-                if cards_left is not None and cards_left == 0:
-                    mark_correct(current)
-                else:
-                    st.error("Incorrect answer. Please try again.")
-            if is_correct(current):
-                st.button("Next", key="final_next", on_click=advance_card)
+            st.button("Next", key="final_next", on_click=advance_card)
 
 if __name__ == "__main__":
     main()
