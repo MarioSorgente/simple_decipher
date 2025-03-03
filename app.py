@@ -206,7 +206,7 @@ def main():
             
             st.write("---")
             # Ask the decipher message question.
-            message_input = st.text_input("What is the message?", key="final_message", placeholder="Type the message here")
+            message_input = st.text_input("What is the message? Please do not report the dots '.'", key="final_message", placeholder="Type the message here")
             if st.button("Submit Message", key="final_message_submit"):
                 if message_input.strip().lower() == "ti penso sempre":
                     st.success("Congrats!! Now you know")
