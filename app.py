@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 
 # Helper function for re-running the app safely
 def safe_rerun():
@@ -154,7 +155,7 @@ def main():
         user_answer = st.number_input("Your answer:", key=f"input_{current}", step=1)
         if st.button("Submit Answer", key=f"submit_{current}"):
             if user_answer == card["answer"]:
-                st.success("Correct!")
+                # Immediately go to next card if answer is correct.
                 st.session_state.card_index += 1
                 safe_rerun()
             else:
