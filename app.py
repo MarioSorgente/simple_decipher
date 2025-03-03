@@ -12,7 +12,7 @@ cards = [
         "title": "Welcome Oceane",
         "text": "Solve the maths to get the password."
     },
-   " {
+    {
         "type": "question",
         "title": "Operation 1",
         "question": "5×4",
@@ -89,21 +89,15 @@ cards = [
         "title": "Operation 13",
         "question": "7-2",
         "answer": 5
-    },"
+    },
     {
         "type": "final",
         "title": "Deciphered Message",
-        "text": """20.9  
-16.5.14.19.15  
-19.5.13.16.18.5  
-
-This is a message you have to decipher.
-
-You can get hints if you need help. Click a hint button below to see a confirmation before revealing the hint."""
+        "text": "20.9 16.5.14.19.15 19.5.13.16.18.5\n\nThis is the deciphered message.\n\nWhat is the message?"
     }
 ]
 
-# Initialize session state for card index and correctness flag.
+# Initialize session state for card index.
 if "card_index" not in st.session_state:
     st.session_state.card_index = 0
 
@@ -147,23 +141,21 @@ def render_card(title, body, card_index):
         unsafe_allow_html=True,
     )
 
+# Function to show a hint immediately when clicked.
 def show_hint_button(hint_num, hint_text):
     button_key = f"hint_button_{hint_num}"
-    confirm_key = f"hint_confirm_{hint_num}"
     if st.session_state.get(f"hint{hint_num}", False):
         st.info(f"Hint {hint_num}: {hint_text}")
     else:
         if st.button(f"Hint {hint_num}", key=button_key):
-            with st.expander("Are you sure you want to get the hint?"):
-                if st.button("Yes, show hint", key=confirm_key):
-                    st.session_state[f"hint{hint_num}"] = True
+            st.session_state[f"hint{hint_num}"] = True
 
 def main():
     total_cards = len(cards)
     current = st.session_state.card_index
     progress = (current + 1) / total_cards
 
-    # Get the current card.
+    # If we've completed all cards, end the app.
     if current >= total_cards:
         st.success("You've completed the puzzle!")
         return
@@ -211,18 +203,18 @@ def main():
                 show_hint_button(2, "Consider a substitution.")
             with col3:
                 show_hint_button(3, "Look at the numerical position of letters in the English alphabet.")
-
+            
             st.write("---")
-            # Ask the message question.
+            # Ask the decipher message question.
             message_input = st.text_input("What is the message?", key="final_message", placeholder="Type the message here")
             if st.button("Submit Message", key="final_message_submit"):
                 if message_input.strip().lower() == "ti penso sempre":
                     st.success("Congrats!! Now you know")
                 else:
                     st.error("Incorrect message. Please try again.")
-
+            
             st.write("---")
-            # Ask the hints used.
+            # Ask the number of hints used.
             hints_used_input = st.text_input("How many hints have you used? (0-3)", key="hints_used", placeholder="Enter a number")
             if st.button("Submit Hints", key="hints_submit"):
                 try:
