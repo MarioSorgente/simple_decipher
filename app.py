@@ -12,7 +12,7 @@ cards = [
         "title": "Welcome Oceane",
         "text": "Solve the maths to get the password."
     },
-    {
+   " {
         "type": "question",
         "title": "Operation 1",
         "question": "5×4",
@@ -89,7 +89,7 @@ cards = [
         "title": "Operation 13",
         "question": "7-2",
         "answer": 5
-    },
+    },"
     {
         "type": "final",
         "title": "Deciphered Message",
