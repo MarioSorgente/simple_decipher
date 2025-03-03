@@ -198,7 +198,7 @@ def main():
             st.write("Need a hint? Double click the buttons below:")
             col1, col2, col3 = st.columns(3)
             with col1:
-                show_hint_button(1, "Mingle letters and numbers.")
+                show_hint_button(1, "Mingle letters and numbers. Please do not report the dots '.'")
             with col2:
                 show_hint_button(2, "Consider a substitution.")
             with col3:
@@ -206,7 +206,7 @@ def main():
             
             st.write("---")
             # Ask the decipher message question.
-            message_input = st.text_input("What is the message? Please do not report the dots '.'", key="final_message", placeholder="Type the message here")
+            message_input = st.text_input("What is the message?", key="final_message", placeholder="Type the message here")
             if st.button("Submit Message", key="final_message_submit"):
                 if message_input.strip().lower() == "ti penso sempre":
                     st.success("Congrats!! Now you know")
