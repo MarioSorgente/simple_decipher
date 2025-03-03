@@ -97,18 +97,23 @@ cards = [
 16.5.14.19.15  
 19.5.13.16.18.5  
 
-This is a message you have to decipher. You can use up to 2 hints:
-- **Hint 1:** mingle letter and numbers  
-- **Hint 2:** consider a substitution  
-- **Hint 3:** consider the numerical position of the letters in the english alphabet
+This is a message you have to decipher.
 
-Now, enter the number of hints you used:"""
+You can get hints if you need help. Click a hint button below to see a confirmation before revealing the hint.
+
+Also, please answer the following puzzle:
+Enter how many cards are left to the end."""
     }
 ]
 
 # Initialize session state for card index and correctness flag.
 if "card_index" not in st.session_state:
     st.session_state.card_index = 0
+
+# Initialize hint confirmation state if not already set.
+for h in ["hint1", "hint2", "hint3"]:
+    if h not in st.session_state:
+        st.session_state[h] = False
 
 # We store per-card correctness using a key "correct_{card_index}"
 def mark_correct(card_index):
@@ -147,6 +152,23 @@ def render_card(title, body, card_index):
         unsafe_allow_html=True,
     )
 
+def show_hint_button(hint_num, hint_text):
+    button_key = f"hint_button_{hint_num}"
+    confirm_key = f"hint_confirm_{hint_num}"
+    # If the hint is already confirmed, show the hint.
+    if st.session_state.get(f"hint{hint_num}", False):
+        st.info(f"Hint {hint_num}: {hint_text}")
+    else:
+        # Show the button to get the hint.
+        if st.button(f"Hint {hint_num}", key=button_key):
+            # Show an expander for confirmation.
+            with st.expander("Are you sure you want to get the hint?"):
+                if st.button("Yes, show hint", key=confirm_key):
+                    st.session_state[f"hint{hint_num}"] = True
+
+# Container for the card.
+card_container = st.empty()
+
 def main():
     current = st.session_state.card_index
 
@@ -156,52 +178,57 @@ def main():
 
     card = cards[current]
 
-    # Welcome Card
-    if card["type"] == "welcome":
-        render_card(card["title"], card["text"], current)
-        if st.button("Start", key="start", on_click=advance_card):
-            time.sleep(0.3)
+    with card_container.container():
+        # Welcome Card
+        if card["type"] == "welcome":
+            render_card(card["title"], card["text"], current)
+            if st.button("Start", key="start", on_click=advance_card):
+                time.sleep(0.3)
 
-    # Question Cards
-    elif card["type"] == "question":
-        render_card(card["title"], card["question"], current)
-        user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
-        if st.button("Submit", key=f"submit_{current}"):
-            try:
-                user_answer = int(user_input)
-            except ValueError:
-                user_answer = None
-            if user_answer is not None and user_answer == card["answer"]:
-                mark_correct(current)
-            else:
-                st.error("Incorrect answer. Please try again.")
-        # Only show Next button if the answer is correct.
-        if is_correct(current):
-            st.button("Next", key=f"next_{current}", on_click=advance_card)
+        # Question Cards
+        elif card["type"] == "question":
+            render_card(card["title"], card["question"], current)
+            user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
+            if st.button("Submit", key=f"submit_{current}"):
+                try:
+                    user_answer = int(user_input)
+                except ValueError:
+                    user_answer = None
+                if user_answer is not None and user_answer == card["answer"]:
+                    mark_correct(current)
+                else:
+                    st.error("Incorrect answer. Please try again.")
+            # Only show Next button if the answer is correct.
+            if is_correct(current):
+                st.button("Next", key=f"next_{current}", on_click=advance_card)
 
-    # Final Card
-    elif card["type"] == "final":
-        render_card(card["title"], card["text"], current)
-        user_input = st.text_input("How many hints did you use?", key="hints_input", placeholder="Enter a number (0-3)")
-        if st.button("Submit", key="final_submit"):
-            try:
-                hints_used_int = int(user_input)
-            except ValueError:
-                hints_used_int = None
-            if hints_used_int is not None:
-                if hints_used_int == 0:
-                    st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
-                elif hints_used_int == 1:
-                    st.info("Since you used 1 hint, you get a tiramisu and a hug")
-                elif hints_used_int == 2:
-                    st.info("Since you used 2 hints, you get a coffee and a hug")
-                elif hints_used_int >= 3:
-                    st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
-                mark_correct(current)
-            else:
-                st.error("Please enter a valid number between 0 and 3.")
-        if is_correct(current):
-            st.button("Next", key="final_next", on_click=advance_card)
+        # Final Card with hints and extra puzzle.
+        elif card["type"] == "final":
+            render_card(card["title"], card["text"], current)
+            st.write("Need a hint? Click the buttons below:")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                show_hint_button(1, "Mingle letters and numbers.")
+            with col2:
+                show_hint_button(2, "Consider a substitution.")
+            with col3:
+                show_hint_button(3, "Look at the numerical position of letters in the English alphabet.")
+
+            st.write("---")
+            # Ask the extra puzzle: How many cards are left to the end?
+            user_input = st.text_input("Enter how many cards are left to the end:", key="cards_left_input", placeholder="Enter a number")
+            if st.button("Submit", key="final_submit"):
+                try:
+                    cards_left = int(user_input)
+                except ValueError:
+                    cards_left = None
+                # Since this is the final card, the correct answer is 0.
+                if cards_left is not None and cards_left == 0:
+                    mark_correct(current)
+                else:
+                    st.error("Incorrect answer. Please try again.")
+            if is_correct(current):
+                st.button("Next", key="final_next", on_click=advance_card)
 
 if __name__ == "__main__":
     main()
