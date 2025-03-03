@@ -15,79 +15,79 @@ cards = [
     {
         "type": "question",
         "title": "Operation 1",
-        "question": "T = 5×4",
+        "question": "5×4",
         "answer": 20
     },
     {
         "type": "question",
         "title": "Operation 2",
-        "question": "I = 3^2",
+        "question": "3^2",
         "answer": 9
     },
     {
         "type": "question",
         "title": "Operation 3",
-        "question": "P = 8+8",
+        "question": "8+8",
         "answer": 16
     },
     {
         "type": "question",
         "title": "Operation 4",
-        "question": "E = 10÷2",
+        "question": "10÷2",
         "answer": 5
     },
     {
         "type": "question",
         "title": "Operation 5",
-        "question": "N = 7+7",
+        "question": "7+7",
         "answer": 14
     },
     {
         "type": "question",
         "title": "Operation 6",
-        "question": "S = 20−1",
+        "question": "20−1",
         "answer": 19
     },
     {
         "type": "question",
         "title": "Operation 7",
-        "question": "O = 5×3",
+        "question": "5×3",
         "answer": 15
     },
     {
         "type": "question",
         "title": "Operation 8",
-        "question": "S = 18+1",
+        "question": "18+1",
         "answer": 19
     },
     {
         "type": "question",
         "title": "Operation 9",
-        "question": "E = 50÷10",
+        "question": "50÷10",
         "answer": 5
     },
     {
         "type": "question",
         "title": "Operation 10",
-        "question": "M = 12+1",
+        "question": "12+1",
         "answer": 13
     },
     {
         "type": "question",
         "title": "Operation 11",
-        "question": "P = 8*2",
+        "question": "8*2",
         "answer": 16
     },
     {
         "type": "question",
         "title": "Operation 12",
-        "question": "R = 20−2",
+        "question": "20−2",
         "answer": 18
     },
     {
         "type": "question",
         "title": "Operation 13",
-        "question": "E = 7-2",
+        "question": "7-2",
         "answer": 5
     },
     {
