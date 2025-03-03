@@ -1,11 +1,18 @@
 import streamlit as st
 
-# List of cards, each card is either an instruction or a question card.
+# Helper function for re-running the app safely
+def safe_rerun():
+    try:
+        st.experimental_rerun()
+    except AttributeError:
+        pass  # In case experimental_rerun is not available
+
+# List of cards, each card is either a welcome, question, or final card.
 cards = [
     {
         "type": "welcome",
         "title": "Welcome Oceane",
-        "text": "Solve the equation to get the password"
+        "text": "Solve the equation to get the password."
     },
     {
         "type": "question",
@@ -101,24 +108,25 @@ Now, enter the number of hints you used:"""
     }
 ]
 
-# Initialize session state for card index and answers if not already done.
+# Initialize session state for card index.
 if "card_index" not in st.session_state:
     st.session_state.card_index = 0
 
-# Custom function to render a card with a Babbel-inspired style
+# Function to render a card with modern, colorful design
 def render_card(title, body):
     st.markdown(
         f"""
         <div style="
-            background-color: #f9f9f9;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: auto;
+            background: linear-gradient(135deg, #ffffff, #e6f0fa);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 650px;
+            margin: 40px auto;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             text-align: center;">
-            <h2 style="color:#2d2d2d;">{title}</h2>
-            <p style="font-size:18px; color:#4d4d4d;">{body}</p>
+            <h2 style="color: #1d3557; margin-bottom: 20px;">{title}</h2>
+            <p style="font-size: 20px; color: #457b9d; line-height: 1.5;">{body}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -128,7 +136,7 @@ def render_card(title, body):
 def main():
     current = st.session_state.card_index
 
-    # If all cards have been completed, show a final message.
+    # If all cards are done, show a completion message.
     if current >= len(cards):
         st.success("You've completed the puzzle!")
         return
@@ -137,27 +145,25 @@ def main():
 
     if card["type"] == "welcome":
         render_card(card["title"], card["text"])
-        if st.button("Next"):
+        if st.button("Next", key="welcome_next"):
             st.session_state.card_index += 1
-            st.experimental_rerun()
+            safe_rerun()
 
     elif card["type"] == "question":
         render_card(card["title"], card["question"])
-        # Use a unique key for the number input based on the card index
         user_answer = st.number_input("Your answer:", key=f"input_{current}", step=1)
         if st.button("Submit Answer", key=f"submit_{current}"):
             if user_answer == card["answer"]:
                 st.success("Correct!")
                 st.session_state.card_index += 1
-                st.experimental_rerun()
+                safe_rerun()
             else:
                 st.error("Incorrect answer. Please try again.")
 
     elif card["type"] == "final":
         render_card(card["title"], card["text"])
-        # Final card: get number of hints used.
         hints_used = st.number_input("How many hints did you use?", min_value=0, max_value=3, step=1, key="hints")
-        if st.button("Submit Hint Usage"):
+        if st.button("Submit Hint Usage", key="hints_submit"):
             if hints_used == 0:
                 st.info("Since you used zero hints, you get a coffee, a tiramisu, and a hug")
             elif hints_used == 1:
@@ -166,9 +172,8 @@ def main():
                 st.info("Since you used 2 hints, you get a coffee and a hug")
             elif hints_used == 3:
                 st.info("Since you used 2 hints, you get a hug. Other prizes were a coffee and a tiramisu")
-            # Mark the app as completed by advancing the card index.
             st.session_state.card_index += 1
-            st.experimental_rerun()
+            safe_rerun()
 
 if __name__ == "__main__":
     main()
