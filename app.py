@@ -10,7 +10,7 @@ cards = [
     {
         "type": "welcome",
         "title": "Welcome Oceane",
-        "text": "Solve the equation to get the password."
+        "text": "Solve the maths to get the password."
     },
     {
         "type": "question",
@@ -69,7 +69,7 @@ cards = [
     {
         "type": "question",
         "title": "Operation 10",
-        "question": "12+1",
+        "question": "Mario's day date of birth",
         "answer": 13
     },
     {
@@ -186,7 +186,8 @@ def main():
         # Question Cards
         elif card["type"] == "question":
             render_card(card["title"], card["question"], current)
-            user_input = st.text_input("Your answer:", key=f"input_{current}", placeholder="Type your answer here")
+            st.write("Your answer:")
+            user_input = st.text_input("", key=f"input_{current}", placeholder="Type your answer here")
             if st.button("Submit", key=f"submit_{current}"):
                 try:
                     user_answer = int(user_input)
